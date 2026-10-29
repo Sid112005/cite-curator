@@ -20,6 +20,29 @@ app.add_middleware(
 class RecommendRequest(BaseModel):
     query: str = Field(..., min_length=1)
     top_n: int = Field(5, ge=1, le=50)
+    category: str | None = Field(None, min_length=1)
+    year: int | None = Field(None, ge=1, le=9999)
+
+
+class PaperResponse(BaseModel):
+    id: str
+    title: str
+    abstract: str
+    authors: str
+    keywords: str
+    publication_date: str | None
+    arxiv_url: str | None
+    pdf_url: str | None
+
+
+class RecommendationResponse(BaseModel):
+    paper: PaperResponse
+    score: float
+
+
+class RecommendResponse(BaseModel):
+    recommendations: list[RecommendationResponse]
+    message: str | None = None
 
 
 @app.on_event("startup")
@@ -41,9 +64,19 @@ def stats() -> dict:
 
 
 @app.post("/recommend")
-def recommend(body: RecommendRequest) -> dict:
+def recommend(body: RecommendRequest) -> RecommendResponse:
     try:
-        recommendations = engine.get_recommendations(body.query.strip(), body.top_n)
-        return {"recommendations": recommendations}
+        recommendations = engine.get_recommendations(
+            body.query.strip(),
+            body.top_n,
+            category=body.category,
+            year=body.year,
+        )
+        message = None
+        if not recommendations:
+            message = "No strong matches found. Try another topic or adjust the filters."
+        return RecommendResponse(recommendations=recommendations, message=message)
     except FileNotFoundError as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

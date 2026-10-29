@@ -25,3 +25,7 @@ dist-ssr
 
 # SBERT embedding cache (regenerated locally)
 data/embeddings.pkl
+data/embeddings.pt
+
+__pycache__/
+.pytest_cache/
