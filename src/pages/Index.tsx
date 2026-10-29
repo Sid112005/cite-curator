@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
 import HeroSection from "@/components/HeroSection";
 import SearchSection from "@/components/SearchSection";
 import ResultsSection from "@/components/ResultsSection";
 import StatsSection from "@/components/StatsSection";
 import WorkflowSection from "@/components/WorkflowSection";
 import DocumentationSection from "@/components/DocumentationSection";
-import type { Recommendation } from "@/lib/recommendations";
+import { parseRecommendationResponse } from "@/lib/recommendations";
+import type {
+  Recommendation,
+  RecommendationFilters,
+} from "@/lib/recommendations";
 
 const API_BASE = "/api";
 
@@ -21,27 +24,48 @@ const Index = () => {
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [stats, setStats] = useState<StatsResponse | null>(null);
+  const [resultMessage, setResultMessage] = useState<string | null>(null);
+  const [backendStatusError, setBackendStatusError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`${API_BASE}/stats`)
       .then((r) => {
-        if (!r.ok) throw new Error("unavailable");
+        if (!r.ok) throw new Error();
         return r.json();
       })
-      .then((data: StatsResponse) => setStats(data))
-      .catch(() => setStats(null));
+      .then((data: StatsResponse) => {
+        setStats(data);
+        setBackendStatusError(null);
+      })
+      .catch((error: unknown) => {
+        setStats(null);
+        setBackendStatusError(
+          error instanceof TypeError
+            ? "The CiteCurator backend is unreachable. Start the API server with `npm run api`."
+            : "The CiteCurator backend could not load corpus statistics. Check the API logs.",
+        );
+      });
   }, []);
 
-  const handleSearch = (searchQuery: string, topN: number) => {
+  const handleSearch = (
+    searchQuery: string,
+    topN: number,
+    filters: RecommendationFilters = {},
+  ) => {
     setIsSearching(true);
     setQuery(searchQuery);
+    setResultMessage(null);
 
     window.setTimeout(async () => {
       try {
         const res = await fetch(`${API_BASE}/recommend`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: searchQuery, top_n: topN }),
+          body: JSON.stringify({
+            query: searchQuery,
+            top_n: topN,
+            ...filters,
+          }),
         });
         if (!res.ok) {
           let message = res.statusText;
@@ -54,11 +78,19 @@ const Index = () => {
           }
           throw new Error(message);
         }
-        const data = (await res.json()) as { recommendations: Recommendation[] };
+        const data = parseRecommendationResponse(await res.json());
         setResults(data.recommendations);
+        setResultMessage(data.message);
+        setBackendStatusError(null);
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Recommendation request failed");
+        const message =
+          e instanceof TypeError
+            ? "Can't reach the CiteCurator backend. Make sure it is running with `npm run api`."
+            : e instanceof Error
+              ? e.message
+              : "Recommendation request failed.";
         setResults([]);
+        setResultMessage(message);
       } finally {
         setIsSearching(false);
         document.getElementById("results")?.scrollIntoView({ behavior: "smooth" });
@@ -74,8 +106,18 @@ const Index = () => {
         paperCount={stats?.paper_count ?? 0}
         modelName={stats?.model ?? "all-MiniLM-L6-v2"}
       />
+      {backendStatusError && (
+        <p role="alert" className="container mx-auto px-6 py-3 text-center text-sm text-destructive">
+          {backendStatusError}
+        </p>
+      )}
       <SearchSection onSearch={handleSearch} isSearching={isSearching} />
-      <ResultsSection results={results} query={query} />
+      <ResultsSection
+        results={results}
+        query={query}
+        message={resultMessage}
+        isLoading={isSearching}
+      />
       <WorkflowSection />
       <DocumentationSection />
 
