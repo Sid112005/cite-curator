@@ -4,33 +4,33 @@ import { Database, Filter, BarChart3, Search, ListOrdered, FileOutput } from "lu
 const steps = [
   {
     icon: Database,
-    title: "Load Dataset",
-    description: "Load arXiv papers from JSON (title, summary, authors, tags)",
+    title: "Load Full Corpus",
+    description: "Load all arXiv papers and their titles, abstracts, dates, and categories",
   },
   {
     icon: Filter,
-    title: "Build Content",
-    description: "Concatenate title and summary into one text field per paper",
+    title: "Precompute Embeddings",
+    description: "Generate and save separate title and abstract vectors once",
   },
   {
     icon: BarChart3,
-    title: "SBERT Embeddings",
-    description: "Encode each paper with SentenceTransformer (all-MiniLM-L6-v2)",
+    title: "Hybrid Similarity",
+    description: "Blend title and abstract cosine scores using configurable weights",
   },
   {
     icon: Search,
-    title: "User Query Input",
-    description: "Encode the research topic with the same model",
+    title: "Filter and Search",
+    description: "Encode the query and optionally filter results by category or year",
   },
   {
     icon: ListOrdered,
-    title: "Cosine Similarity",
-    description: "Compare query and corpus vectors with util.cos_sim",
+    title: "Relevance Threshold",
+    description: "Exclude papers below the configured minimum similarity score",
   },
   {
     icon: FileOutput,
     title: "Rank & Display",
-    description: "Sort by score and return top N recommendations",
+    description: "Return strong matches, or explain when none meet the threshold",
   },
 ];
 

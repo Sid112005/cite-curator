@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "description": "Draft title-grounded relevance judgments for CiteCurator; please review entries marked for review.",
+  "queries": [
+    {
+      "query": "visual question answering with attention",
+      "relevant_paper_ids": ["1802.00209v1", "1511.05234v2"]
+    },
+    {
+      "query": "deep learning methods for image classification",
+      "relevant_paper_ids": ["1712.03541v1", "1502.07058v1"],
+      "needs_review": true,
+      "review_note": "The second judgment is specifically about document image classification."
+    },
+    {
+      "query": "3D point cloud object detection",
+      "relevant_paper_ids": ["1609.06666v2", "1802.09129v1"]
+    },
+    {
+      "query": "neural machine translation",
+      "relevant_paper_ids": ["1406.1078v3", "1409.0473v7"]
+    },
+    {
+      "query": "sentiment analysis using neural networks",
+      "relevant_paper_ids": ["1706.07206v2", "1709.06990v1"]
+    },
+    {
+      "query": "neural language modeling and decoding",
+      "relevant_paper_ids": ["1702.04521v1", "1612.02695v1"]
+    },
+    {
+      "query": "graph convolutional neural networks",
+      "relevant_paper_ids": ["1802.09405v1", "1703.06103v4"]
+    },
+    {
+      "query": "deep reinforcement learning for conversational agents",
+      "relevant_paper_ids": ["1709.02349v2", "1801.06700v1"],
+      "needs_review": true,
+      "review_note": "Both judgments are chatbot papers and may be narrower than general reinforcement learning."
+    },
+    {
+      "query": "robot learning and policy search",
+      "relevant_paper_ids": ["1709.06917v2", "1711.09055v1"]
+    },
+    {
+      "query": "end-to-end speech recognition",
+      "relevant_paper_ids": ["1712.03133v1", "1508.04395v2"]
+    },
+    {
+      "query": "sentence embeddings for information retrieval",
+      "relevant_paper_ids": ["1502.06922v3", "1703.02819v1"],
+      "needs_review": true,
+      "review_note": "The second judgment covers an information-retrieval application but is about formal concept analysis."
+    },
+    {
+      "query": "collaborative filtering and recommender systems",
+      "relevant_paper_ids": ["1409.2944v2", "1601.04800v1"]
+    },
+    {
+      "query": "differential privacy in machine learning",
+      "relevant_paper_ids": ["1603.07294v2", "1503.02031v1"],
+      "needs_review": true,
+      "review_note": "The dropout paper discusses differential privacy properties, not only privacy-preserving learning."
+    },
+    {
+      "query": "privacy-preserving federated learning",
+      "relevant_paper_ids": ["1710.05241v1", "1712.07557v2"]
+    },
+    {
+      "query": "adversarial attacks and neural network robustness",
+      "relevant_paper_ids": ["1712.04248v2", "1710.00486v1"]
+    },
+    {
+      "query": "stochastic gradient descent optimization",
+      "relevant_paper_ids": ["1412.7419v5", "1712.00779v1"]
+    },
+    {
+      "query": "quantum machine learning algorithms",
+      "relevant_paper_ids": ["1709.08519v1", "1601.07358v1"]
+    },
+    {
+      "query": "time series prediction and forecasting",
+      "relevant_paper_ids": ["1401.0104v1", "1704.06498v3"],
+      "needs_review": true,
+      "review_note": "The second paper concerns time-series prediction for graph data; confirm its relevance to general forecasting."
+    },
+    {
+      "query": "protein sequence classification and bioinformatics",
+      "relevant_paper_ids": ["1504.02235v1", "1211.4866v1"]
+    },
+    {
+      "query": "causal inference methods",
+      "relevant_paper_ids": ["1606.07035v3", "1712.08626v1"]
+    },
+    {
+      "query": "Bayesian inference and uncertainty in neural networks",
+      "relevant_paper_ids": ["1612.01251v2", "1210.8442v3"]
+    }
+  ]
+}

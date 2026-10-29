@@ -2,9 +2,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { RecommendationFilters } from "@/lib/recommendations";
 
 interface SearchSectionProps {
-  onSearch: (query: string, topN: number) => void;
+  onSearch: (query: string, topN: number, filters?: RecommendationFilters) => void;
   isSearching: boolean;
 }
 
@@ -22,10 +23,17 @@ const EXAMPLE_QUERIES = [
 const SearchSection = ({ onSearch, isSearching }: SearchSectionProps) => {
   const [query, setQuery] = useState("");
   const [topN, setTopN] = useState(5);
+  const [category, setCategory] = useState("");
+  const [year, setYear] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) onSearch(query, topN);
+    if (query.trim()) {
+      onSearch(query, topN, {
+        ...(category.trim() ? { category: category.trim() } : {}),
+        ...(year ? { year: Number(year) } : {}),
+      });
+    }
   };
 
   return (
@@ -54,6 +62,37 @@ const SearchSection = ({ onSearch, isSearching }: SearchSectionProps) => {
                 placeholder="e.g., deep learning for natural language processing"
                 className="w-full pl-12 pr-4 py-4 rounded-xl border border-border bg-card text-card-foreground font-body text-base placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow paper-shadow"
               />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="category" className="block text-xs text-muted-foreground font-body mb-1">
+                  Category (optional)
+                </label>
+                <input
+                  id="category"
+                  type="text"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="e.g., cs.AI"
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-card text-card-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div>
+                <label htmlFor="year" className="block text-xs text-muted-foreground font-body mb-1">
+                  Publication year (optional)
+                </label>
+                <input
+                  id="year"
+                  type="number"
+                  min="1"
+                  max="9999"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  placeholder="e.g., 2020"
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-card text-card-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
             </div>
 
             <div className="flex items-center justify-between gap-4">
