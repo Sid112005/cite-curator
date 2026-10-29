@@ -1,165 +1,140 @@
-**Project Title & Overview**
+# CiteCurator
 
-Data Structures — Course Laboratory Work
+CiteCurator is a research-paper discovery app. Enter a topic to find arXiv papers ranked by semantic similarity between the query and each paper's title and abstract. Results include publication details, categories, similarity scores, and links to the arXiv abstract and PDF.
 
-This repository contains a lab project for a "Data Structures using Python" course. It combines a small Python backend that demonstrates practical data-processing and retrieval techniques (an SBERT-based paper recommendation engine) with a modern React + TypeScript frontend. The codebase includes parsing, caching, vector search (cosine similarity), and a Vite-based UI demonstrating the recommendations.
+## Features
 
-**Data Structures & Algorithms Implemented**
+- Searches the full local corpus of 41,000 arXiv metadata records.
+- Uses Sentence-BERT (`all-MiniLM-L6-v2`) embeddings and a configurable title/abstract similarity blend (default: 0.4 / 0.6).
+- Filters results by optional arXiv category and publication year.
+- Applies a configurable relevance threshold and explains when no results meet it.
+- Saves precomputed corpus embeddings so the model only encodes the user's query during recommendation requests.
 
-- **Vector search (embeddings):** Sentence-BERT embeddings with cosine similarity ranking (backend implementation in [backend/engine.py](backend/engine.py)).
-- **Caching:** Pickle-based cache for embeddings with JSON modification-time validation to avoid unnecessary recomputation ([backend/engine.py](backend/engine.py)).
-- **Parsing & normalization:** Robust parsing of stringified lists and author/tag extraction using `ast.literal_eval` and `pandas` helpers ([backend/engine.py](backend/engine.py)).
-- **Data loading & preprocessing:** Loading JSON into a `pandas.DataFrame`, concatenating title+summary into a single `content` field for encoding ([backend/engine.py](backend/engine.py)).
-- **API & routing:** FastAPI endpoints for health, stats and recommendations (see [backend/main.py](backend/main.py)).
+## Technology
 
-Note: A scan of the repository did not reveal classical classroom implementations of Linked Lists, Trees, Graphs, or sorting algorithm source files. If you have additional folders with exercise code, add them and I can update this list.
+- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, Radix UI.
+- **Backend:** Python, FastAPI, Uvicorn, pandas, Sentence Transformers, PyTorch.
+- **Evaluation:** scikit-learn TF-IDF baseline and pytest/Vitest tests.
+- **Data:** arXiv metadata in `data/arxivData.json`; generated title and abstract vectors in the ignored `data/embeddings.pt` cache.
 
-**Tech Stack**
+## Requirements
 
-- **Backend:** Python 3.10+ (recommended), FastAPI, Uvicorn, pandas, sentence-transformers, PyTorch
-- **Frontend:** React, TypeScript, Vite, Tailwind CSS
-- **Dev / Test:** Vitest, ESLint
+- Python 3.10 or later.
+- Node.js and npm.
+- Approximately 126 MB of disk space for the generated embeddings, in addition to the dataset and installed dependencies.
+- Network access the first time the Sentence Transformers model is needed, unless it is already cached locally.
 
-**Project Structure**
+## Run locally
 
-- **backend/** — Python backend with recommendation engine and FastAPI server.
-  - [backend/engine.py](backend/engine.py): SBERT embedding generation, caching, and search utilities.
-  - [backend/main.py](backend/main.py): FastAPI application exposing `/health`, `/stats`, and `/recommend` endpoints.
-  - [backend/requirements.txt](backend/requirements.txt): Python dependencies for the backend.
-- **data/** — Dataset used by the backend.
-  - [data/arxivData.json](data/arxivData.json): Source JSON of papers used for embeddings.
-- **src/** — React + TypeScript frontend (Vite) and UI components.
-- **public/** — Static assets for the frontend.
-- **docs/** — (Optional) Documentation and notes.
+### 1. Install Python dependencies
 
-**How to Run**
-
-Prerequisites:
-
-- Python 3.10+ (for the backend)
-- Node.js 18+ and npm/yarn/bun (for the frontend)
-
-1) Backend (local)
-
-Create and activate a virtual environment, install dependencies:
+From the repository root:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\activate
-pip install -r backend/requirements.txt
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r backend/requirements.txt
 ```
 
-Start the FastAPI server:
+On macOS/Linux, activate the environment with `source .venv/bin/activate`.
+
+### 2. Generate corpus embeddings
+
+Generate the saved title and abstract vectors once:
 
 ```powershell
-uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
-# or (convenience script)
+python -m backend.generate_embeddings
+```
+
+This processes the full dataset and writes `data/embeddings.pt`. It can take several minutes and requires the model to be available locally or downloadable. Regenerate this file whenever the source JSON changes. The API checks the artifact against the dataset timestamp, record count, and model and reports an error if it is missing or stale.
+
+### 3. Start the API
+
+In one terminal:
+
+```powershell
 npm run api
 ```
 
-The API endpoints:
+The FastAPI server listens at `http://127.0.0.1:8000`. Its startup loads the metadata, embedding artifact, and model.
 
-- `GET /health` — server health
-- `GET /stats` — engine statistics (paper count, embedding dim, model)
-- `POST /recommend` — body: `{ "query": "your text", "top_n": 5 }`
+### 4. Start the web app
 
-Example request using `curl`:
+In another terminal:
 
-```bash
-curl -X POST http://127.0.0.1:8000/recommend \
-  -H "Content-Type: application/json" \
-  -d '{"query": "graph neural networks", "top_n": 5}'
-```
-
-2) Frontend (local)
-
-Install dependencies and start the dev server:
-
-```bash
+```powershell
 npm install
 npm run dev
 ```
 
-The frontend runs via Vite (default at `http://localhost:5173`) and calls the backend API for recommendations.
+Open the URL printed by Vite (configured to use port **8080**). During development, Vite proxies `/api` requests to the backend at `127.0.0.1:8000`.
 
-**Notes & Next Steps**
+## API
 
-- If you want the README to enumerate classic data structure implementations (Linked Lists, Trees, Heaps, Graphs, sorting/searching algorithms), add those Python exercise files or point me to their location and I will update the list accordingly.
-- Consider adding small unit tests for the backend (`pytest` or `unittest`) and a lightweight demo script (e.g., `scripts/query_example.py`) to make it easier to showcase engine output without running the full frontend.
+- `GET /health` — API health check.
+- `GET /stats` — corpus size, embedding dimension, model, weights, and relevance threshold.
+- `POST /recommend` — rank papers for a query, optionally filtered by category and/or year.
 
----
+Example:
 
-If you'd like, I can update this README to include diagrams, runtime benchmarks for the embedding pipeline, or add a dedicated `CONTRIBUTING.md` and example notebook demonstrating embedding generation and nearest-neighbor search.
-# Welcome to your Lovable project
-
-## Project info
-
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```powershell
+curl.exe -X POST http://127.0.0.1:8000/recommend `
+  -H "Content-Type: application/json" `
+  -d '{"query":"graph neural networks","top_n":5,"category":"cs.AI","year":2018}'
 ```
 
-**Edit a file directly in GitHub**
+`category` and `year` are optional. Category matching is case-insensitive and uses the paper's exact arXiv category. The API returns no results when none meet the relevance threshold.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Recommendation settings
 
-**Use GitHub Codespaces**
+The backend reads these environment variables:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Variable | Default | Meaning |
+|---|---:|---|
+| `CITECURATOR_TITLE_WEIGHT` | `0.4` | Title similarity weight |
+| `CITECURATOR_ABSTRACT_WEIGHT` | `0.6` | Abstract similarity weight |
+| `CITECURATOR_RELEVANCE_THRESHOLD` | `0.35` | Minimum blended cosine similarity to return |
 
-## What technologies are used for this project?
+The two weights are normalized by their sum. They must be non-negative and cannot both be zero. The threshold must be between -1 and 1. Restart the API after changing these settings.
 
-This project is built with:
+## How it works
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+1. `backend/generate_embeddings.py` reads all records in `data/arxivData.json`, normalizes title and summary text, and separately encodes titles and abstracts using `all-MiniLM-L6-v2`.
+2. The generator saves both vector matrices and dataset/model metadata to `data/embeddings.pt`.
+3. At startup, `backend/engine.py` loads the corpus and verifies that the saved vectors correspond to the current JSON file and model. It fails with a regeneration instruction if they do not.
+4. For each recommendation request, the engine embeds the query once, computes cosine similarity against both sets of vectors, combines the scores using the configured weights, applies optional filters and the minimum threshold, then returns the top requested matches.
+5. The React app sends requests through Vite's `/api` proxy and displays ranked papers and their arXiv links.
 
-## How can I deploy this project?
+## Evaluation
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+The current evaluation uses 21 draft queries and 42 title-grounded relevance judgments. It compares the hybrid SBERT retriever against a TF-IDF baseline:
 
-## Can I connect a custom domain to my Lovable project?
+| Model | Precision@5 | Recall@10 | MRR |
+|---|---:|---:|---:|
+| Hybrid SBERT (0.4 title / 0.6 abstract) | 0.0571 | 0.2381 | 0.1704 |
+| TF-IDF (unigrams + bigrams) | 0.0571 | 0.2381 | 0.1680 |
 
-Yes, you can!
+These preliminary results are close and do not establish a statistically meaningful difference. The labels are sparse and have five entries flagged for review; see [docs/evaluation.md](docs/evaluation.md) and [data/eval/queries.json](data/eval/queries.json) for methodology and judgments.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+To reproduce the comparison, install the Python dependencies and generate embeddings first, then run:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```powershell
+python -m backend.evaluate
+```
+
+## Tests and build
+
+```powershell
+python -m pytest backend/tests
+npm test
+npm run lint
+npm run build
+```
+
+## Data source, licensing, and updates
+
+`data/arxivData.json` is a local snapshot of arXiv paper metadata. Its records contain arXiv identifiers and metadata fields such as title, summary, authors, categories, and dates, and cover publication years 1993–2018. The repository does not record the snapshot's original download date, export procedure, or a separate upstream dataset URL, so those provenance details cannot be verified from the project.
+
+arXiv states that **its metadata is dedicated to CC0 1.0**. This applies to metadata, not automatically to the articles themselves: arXiv articles can have different licenses by submission and version. Cite the original authors and arXiv records when using the data, and check an individual paper's license before reusing its full text or other content. See [arXiv's license information](https://info.arxiv.org/help/license/index.html) and [API documentation](https://info.arxiv.org/help/api/user-manual.html).
+
+The project currently has **no automatic data-refresh job**. To update the snapshot, retrieve the desired records through the official arXiv API (following its [terms of use](https://info.arxiv.org/help/api/tou.html)), transform them into the fields and representation expected by `backend/engine.py`, and replace the JSON snapshot. Review the updated records and source attribution, then regenerate the vectors with `python -m backend.generate_embeddings` before starting the API. Keep a record of the retrieval date, query, and source/API version alongside any future dataset refresh.
